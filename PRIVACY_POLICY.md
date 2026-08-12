@@ -1,5 +1,7 @@
 # NarshaMCP Privacy Policy
 
+<!-- cspell:ignore CCPA firebasestorage Suyeonggangbyeon daero Haeundae Busan Pseudonymization -->
+
 **Effective Date**: 2026-08-13
 **Version**: 2.6
 **Issue**: [#3438](https://github.com/Next-Stage-Inc/ue-code-mcp/issues/3438), [#6716](https://github.com/Next-Stage-Inc/ue-code-mcp/issues/6716), [#11118](https://github.com/Next-Stage-Inc/ue-code-mcp/issues/11118), [#15825](https://github.com/Next-Stage-Inc/ue-code-mcp/issues/15825), [#25802](https://github.com/Next-Stage-Inc/ue-code-mcp/issues/25802)
