@@ -4,7 +4,7 @@
 
 **Effective Date**: 2026-08-13
 **Version**: 2.6
-**Issue**: [#3438](https://github.com/Next-Stage-Inc/ue-code-mcp/issues/3438), [#6716](https://github.com/Next-Stage-Inc/ue-code-mcp/issues/6716), [#11118](https://github.com/Next-Stage-Inc/ue-code-mcp/issues/11118), [#15825](https://github.com/Next-Stage-Inc/ue-code-mcp/issues/15825), [#25802](https://github.com/Next-Stage-Inc/ue-code-mcp/issues/25802)
+**Issue**: #3438, #6716, #11118, #15825, #25802
 
 ---
 
@@ -87,19 +87,19 @@ If you enable pseudonymous telemetry, we collect Tier 1 data:
 ### 1.2a Tier 2 — Diagnostic Error Reports (Per-Call Explicit Consent, Issue #11118)
 
 Tier 2 covers a single, narrowly-scoped channel: error reports submitted by
-the [`/release-recovery`](../../.claude/skills/release-recovery/SKILL.md) skill
+the `/release-recovery` (`.claude/skills/release-recovery/SKILL.md`) skill
 when an end-user explicitly opts in via `--send-telemetry`. Tier 1 standing
 consent does **not** authorize Tier 2 submissions; each `--send-telemetry`
 invocation requires the user to type the flag themselves.
 
-**Tier 2 payload contents** (full schema: [ERROR_REPORTS_SCHEMA.md](../telemetry/ERROR_REPORTS_SCHEMA.md)):
+**Tier 2 payload contents** (full schema: ERROR_REPORTS_SCHEMA.md (`docs/telemetry/ERROR_REPORTS_SCHEMA.md`)):
 
 | Field | Notes |
 |-------|-------|
 | `narshamcp_version`, `ue_version`, `platform.{os,arch}` | Same shape as Tier 1 |
 | `phase_a_severity` (`OK` / `WARN` / `CRITICAL`) | Diagnostic verdict only |
 | `scenarios[]`, `issues[]` | Diagnose-stage classifications (e.g. `stale_path`, `mcp_json_invalid`); these are short well-known codes, not free-form |
-| `log_tail[]` (≤ 200 entries, masked) | Trailing log lines from `~/.narshamcp/logs/mcp_server.log` AFTER passing the [client masker](../../.claude/skills/release-recovery/scripts/masking.py) |
+| `log_tail[]` (≤ 200 entries, masked) | Trailing log lines from `~/.narshamcp/logs/mcp_server.log` AFTER passing the client masker (`.claude/skills/release-recovery/scripts/masking.py`) |
 | `mcp_json_redacted` (single masked string) | The user's `.mcp.json` contents with project + engine + user-home paths replaced by `<PROJECT>` / `<ENGINE>` / `<USER_HOME>` labels |
 | `env_vars` (allow-listed keys) | Only env vars matching `^(UECODEGEN_|NARSHAMCP_|RUST_LOG)`. Values whose key ends with `_TOKEN`, `_KEY`, `_SECRET`, `_PASSWORD`, `_PASSWD` are pre-redacted to `<REDACTED>` before transmission |
 | `anon_install_id` (sha256 of install UUID) | Pseudonymous; lets us detect "same user reported twice" without identifying who |
@@ -243,7 +243,7 @@ export UECODEGEN_TELEMETRY_DISABLED=1
 #### 4.1.1 Aggregated Weekly Snapshots (Issue #10418)
 
 For internal dashboard use only, the
-[`weekly-telemetry-publish`](../../.github/workflows/weekly-telemetry-publish.yml)
+`weekly-telemetry-publish` (`.github/workflows/weekly-telemetry-publish.yml`)
 GitHub Actions workflow runs every Sunday 04:00 KST and writes 5 aggregated
 JSON artifacts to Firebase Storage at `gs://uecodegen.firebasestorage.app/data/telemetry/`:
 
@@ -256,16 +256,16 @@ JSON artifacts to Firebase Storage at `gs://uecodegen.firebasestorage.app/data/t
 These artifacts contain **only aggregated counts and percentages** — no
 session content, no tool arguments, no user identifiers. Read access is gated
 by Firebase authentication and a domain whitelist (`VITE_AUTH_ALLOWED_DOMAINS`,
-fail-closed) — see [`tools/firebase-dashboard/README.md`](../../tools/firebase-dashboard/README.md)
-and [Issue #10419](https://github.com/Next-Stage-Inc/ue-code-mcp/issues/10419).
+fail-closed) — see `tools/firebase-dashboard/README.md`
+and Issue #10419.
 Source-collection coverage and the current write-path gaps (e.g.,
 `tool_executions` is not yet populated by the Rust uploader) are documented in
-[`docs/telemetry/COLLECTION_WRITE_PATHS.md`](../telemetry/COLLECTION_WRITE_PATHS.md).
+`docs/telemetry/COLLECTION_WRITE_PATHS.md`.
 
 #### 4.1.2 Internal SPA Dashboard (Issue #10428)
 
 The internal SPA dashboard at `https://uecodegen.web.app` (source:
-[`tools/firebase-dashboard/`](../../tools/firebase-dashboard/)) **visualizes
+`tools/firebase-dashboard/`) **visualizes
 the same telemetry data already documented in §4.1.1** — no new data is
 collected or exposed beyond what is described in §3 (Data Collection) and
 §4.1 (Telemetry Data). The dashboard:
@@ -274,13 +274,13 @@ collected or exposed beyond what is described in §3 (Data Collection) and
   whitelist (`VITE_AUTH_ALLOWED_DOMAINS`); external users are unaffected.
 - Reads only from existing data sources: Firebase Storage artifacts (§4.1.1),
   GA4 Reporting API (via `ga4Proxy` Cloud Function with same domain check),
-  and Firestore collections gated by [`firestore.rules`](../../tools/firebase-dashboard/firestore.rules)
+  and Firestore collections gated by `firestore.rules` (`tools/firebase-dashboard/firestore.rules`)
   (which mirror the same allow-list).
 - Has 6 tabs: Overview, Tools, Leaderboard, Quality, Realtime, Conversations
   (the originally-planned 7th `/daemon` tab was dropped in
-  [PR #10846](https://github.com/Next-Stage-Inc/ue-code-mcp/pull/10846) —
+  PR #10846 —
   `dashboard_server` is a local PC tool unrelated to telemetry).
-- See [`docs/user-guides/FIREBASE_DASHBOARD_GUIDE.md`](../user-guides/FIREBASE_DASHBOARD_GUIDE.md)
+- See `docs/user-guides/FIREBASE_DASHBOARD_GUIDE.md`
   for per-tab data sources and the new-member onboarding procedure.
 
 ### 4.2 Consent Records
@@ -349,11 +349,11 @@ Under GDPR Articles 15-22, you have the right to:
 
 | Right | How to Exercise |
 |-------|----------------|
-| **Access** | Request copy of your data: privacy@narshamcp.com |
+| **Access** | Request copy of your data: business@narshaadk.ai |
 | **Rectification** | Update your email via Firebase console |
 | **Erasure** | Delete account: `ue_auth(operation="logout")` + delete `~/.narshamcp/` |
 | **Restriction** | Disable telemetry: `ue_auth(operation="telemetry_disable")` |
-| **Data portability** | Request export: privacy@narshamcp.com |
+| **Data portability** | Request export: business@narshaadk.ai |
 | **Object** | Withdraw consent anytime (see Section 3.2) |
 | **Automated decisions** | Not applicable (no automated profiling) |
 
@@ -367,8 +367,8 @@ Under the California Consumer Privacy Act (CCPA, Cal. Civ. Code 1798.100-199.100
 
 | Right | Description | How to Exercise |
 |-------|-------------|-----------------|
-| **Right to Know** | Request what data we collect | privacy@narshamcp.com |
-| **Right to Delete** | Request deletion of your data | `ue_auth(operation="telemetry_disable")` + privacy@narshamcp.com |
+| **Right to Know** | Request what data we collect | business@narshaadk.ai |
+| **Right to Delete** | Request deletion of your data | `ue_auth(operation="telemetry_disable")` + business@narshaadk.ai |
 | **Right to Opt-Out of Sale** | We **never sell** your personal information | N/A — no sale occurs |
 | **Right to Non-Discrimination** | Equal service regardless of privacy choices | All features work without telemetry |
 
@@ -399,7 +399,7 @@ We **never sell** your data to third parties.
 
 NarshaMCP is not intended for users under 13. We do not knowingly collect data from children.
 
-If you believe we have collected data from a child under 13, contact us immediately at privacy@narshamcp.com.
+If you believe we have collected data from a child under 13, contact us immediately at business@narshaadk.ai.
 
 ---
 
@@ -437,9 +437,9 @@ We may update this policy to reflect:
 
 ## 10. Contact Us
 
-**Privacy Questions**: privacy@narshamcp.com
-**Security Issues**: security@narshamcp.com
-**General Support**: https://github.com/Next-Stage-Inc/ue-code-mcp/issues
+**Privacy Questions**: business@narshaadk.ai
+**Security Issues**: business@narshaadk.ai
+**General Support**: the internal tracker
 
 **Data Controller**:
 Next Stage Inc.
@@ -450,7 +450,7 @@ Currently, NarshaMCP does not actively target EU users and therefore does not
 require an Article 27 Representative. If we begin targeting EU users via Fab
 or other channels, an EU Representative will be appointed and listed here.
 General data protection inquiries (EU or otherwise) may be sent to
-privacy@narshamcp.com — this address is the controller contact, not an
+business@narshaadk.ai — this address is the controller contact, not an
 Article 27 Representative.
 
 ---
@@ -478,7 +478,7 @@ Our consent mechanism meets GDPR Art. 7 requirements:
 
 - **Circuit breaker**: Auto-disable after 3 failures (prevent data leaks)
 - **Never crashes**: Telemetry errors don't affect main functionality
-- **MCP protocol safe**: No stdout pollution (see [CRITICAL_RULES.md](../reference/CRITICAL_RULES.md))
+- **MCP protocol safe**: No stdout pollution (see CRITICAL_RULES.md (`docs/reference/CRITICAL_RULES.md`))
 - **Local consent**: Consent stored on your machine (not transmitted)
 
 ---
@@ -562,4 +562,4 @@ A: Yes! You can login (for sync) and disable telemetry. Authentication and telem
 
 **Last Updated**: 2026-08-13
 **Version**: 2.6
-**Contact**: privacy@narshamcp.com
+**Contact**: business@narshaadk.ai
