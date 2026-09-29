@@ -1,21 +1,18 @@
 # NarshaMCP Privacy Policy
 
-<!-- cspell:ignore CCPA firebasestorage Suyeonggangbyeon daero Haeundae Busan Pseudonymization -->
-
-**Effective Date**: 2026-08-13
-**Version**: 2.6
-**Issue**: #3438, #6716, #11118, #15825, #25802
+**Effective Date**: 2026-09-29
+**Version**: 2.8
 
 ---
 
 ## 📋 Summary
 
-NarshaMCP respects your privacy. We collect **pseudonymous usage data only if you explicitly consent**. You can opt out anytime with no impact on functionality.
+NarshaMCP respects your privacy. It sends usage data to us **only if you explicitly consent**, and it never sends your code. You can change your mind at any time, and every feature works the same with telemetry turned off.
 
 **Key Points**:
-- ✅ **Opt-in by default**: Telemetry disabled unless you consent
-- ✅ **Data minimization**: No code, file paths, personal information, or machine-derived fingerprint
-- ✅ **Easy withdrawal**: Change your mind anytime
+- ✅ **Off by default**: Nothing is sent to us until you opt in
+- ✅ **Data minimization**: No source code, file contents, file paths, project names, personal information, or identifier derived from your machine
+- ✅ **Easy withdrawal**: Turn it off at any time
 - ✅ **GDPR compliant**: Follows EU data protection regulations
 - ✅ **CCPA compliant**: Meets California privacy requirements
 
@@ -23,146 +20,65 @@ NarshaMCP respects your privacy. We collect **pseudonymous usage data only if yo
 
 ## 1. What Data We Collect
 
-### 1.1 Data Collection Tiers
+### 1.1 Overview
 
-NarshaMCP defines three data tiers with increasing scope. Tier 1 (anonymous, opt-in) and Tier 2 (per-call explicit opt-in for diagnostic error reports) are active; Tier 3 is never collected.
+NarshaMCP sends one kind of data to us: **pseudonymous usage data**, and only after you opt in (Section 3). Everything else it stores stays on your computer (Section 1.4). Separately, it asks GitHub whether a newer version exists (Section 1.5). That request goes to GitHub, not to us.
 
-| Tier | Scope | Consent | Status |
-|------|-------|---------|--------|
-| **Tier 1** | Pseudonymous (random per-install UUID; no machine fingerprint) | Opt-in | Active |
-| **Tier 2** | Pseudonymized (random install UUID) — diagnostic error reports only | **Per-call** explicit opt-in | Active (Issue #11118) |
-| **Tier 3** | Personal data | Never collected | N/A |
-
-**Tier 1 data** (current):
-- MCP server version, UE engine version, OS/architecture
-- Random UUIDv4 used as the Google Analytics `client_id`; generated locally per NarshaMCP project/install data directory and never derived from hostname, hardware, OS, or architecture
-- Tool call counts (tool name, operation name, parameter key names — no parameter values)
-- Tool call sequence (anonymous ordinal position within session)
-- Session start/end times
-- Error categories (types only, not messages)
-- Performance metrics (execution time)
-- Skill invocation counts (skill name only — no skill arguments or output; Issue #10748). Skill names are sanitized client-side: control characters are replaced with `_` and the value is truncated to 100 characters before transmission.
-- Daemon crash events (`daemon_crashed`, Issue #15825): crash reason (`external_kill` / `panic`), OS exit code, engine version (best-effort proxy — the reporting daemon's, as the crash record carries none), and AV probable-cause / Defender threat-name labels — no file paths, no crash message, no backtrace, no tool-call history. Emitted by the *next* daemon startup from local crash records so soak gates are remotely observable.
-
-**Tier 3 — never collected**:
-- Source code or search queries
+**We never collect**:
+- Source code, file contents, or search queries
 - Project names or file paths
-- Function/class names or parameters
-- Personal information (name, email, IP address)
-- Raw or machine-derived device identifiers and hardware fingerprints. The Tier 1 random UUIDv4 is generated independently for each install and cannot reveal the hostname or hardware. See Section 4.2 for storage details.
+- The values you or your AI client pass to tools, other than the operation name described in Section 1.2
+- Personal information such as your name or email address
+- Hostname, hardware serial numbers, MAC address, or any value derived from them
 - Authentication tokens
 
-### 1.2 Pseudonymous Telemetry (With Your Consent)
+Like any web request, the requests described in Sections 1.2 and 1.5 reach Google and GitHub with your IP address.
 
-If you enable pseudonymous telemetry, we collect Tier 1 data:
+### 1.2 Pseudonymous Usage Data (With Your Consent)
 
-| Data Type | Examples | Purpose |
-|-----------|----------|---------|
-| **Tool usage** | Which MCP tools used, operation names, parameter key names, frequency | Feature prioritization |
-| **Skill usage** | Which slash-commands invoked (skill name only — no skill arguments), frequency. Sanitized: control chars stripped, 100-char cap. (Issue #10748) | Skill effectiveness ranking on `/leaderboard` |
-| **Performance metrics** | Tool execution time, error rates | Performance optimization |
-| **Error categories** | Error types (not messages) | Reliability improvements |
-| **Sequence tracking** | Tool call order within session | Workflow analysis |
-| **Platform info** | OS, UE version, MCP server version | Compatibility testing |
-| **Per-install client ID** | Random UUIDv4, stored locally; not derived from machine properties | GA4 deduplication and aggregate usage measurement |
-| **Daemon crashes** | Crash reason (`external_kill`/`panic`), OS exit code, engine version (proxy), AV probable-cause / Defender threat-name label — no paths, no backtrace, no tool history (Issue #15825) | Daemon stability / soak-gate monitoring |
+If you opt in, NarshaMCP sends the following to Google Analytics:
 
-**What we do NOT collect**:
-- Source code or search queries
-- Project names or file paths
-- Function/class names or parameters
-- Personal information (name, email, IP address)
-- Authentication tokens
-- Hostname, hardware serials, MAC address, or any hash derived from those values
+| Data | What is sent | Purpose |
+|------|--------------|---------|
+| **Install ID** | A random UUIDv4 generated on your computer and stored in `.telemetry_client_id` (Section 4.2). It is not derived from your hostname, hardware, OS, account, or project. | Counting installs without identifying anyone |
+| **Session** | NarshaMCP version, Unreal Engine version (when known), OS and CPU architecture, a random session ID, session length, and number of tool calls | Compatibility and usage volume |
+| **Tool calls** | Tool name and operation name as requested by your AI client, parameter key names (never values), success or failure, execution time, position within the session, and whether NarshaMCP or Epic's Unreal MCP server handled the call | Feature priorities and performance |
+| **Errors** | The tool name, an error type from a fixed list (for example `timeout` or `not_found`) and, for build errors, the compiler error code (for example `C2065`), plus execution time and whether the error was recoverable. Never the error message. | Reliability |
+| **Startup** | Five yes/no flags describing whether local caches were reused at startup | Startup performance |
+| **Crashes** | Crash reason (`external_kill` or `panic`), exit code, NarshaMCP and Unreal Engine versions, OS and CPU architecture, and, when available, an antivirus probable-cause label and the Windows Defender threat name. Sent by the next start of NarshaMCP from a local crash record. No file paths, messages, backtraces, or tool history. | Stability |
+| **Flaky-test check** | Only when you run the automation-test flakiness check: a random report ID, the number of runs examined and of flaky tests, a hash of the check's settings, whether the report was built from sample test data, and, for up to 10 flaky tests, the first 16 hexadecimal characters of a SHA-256 hash of the test name. Never the test name itself. | Test reliability features |
 
-> **`daemon_crashed` and `host`**: Tier 1 events carry the random per-install
-> GA4 `client_id`, but **no** host/PC-derived identifier. A raw `host` (hostname) plus `anon_install_id` (the
-> same pseudonymous install UUID described for Tier 2 in §1.2a) are added **only**
-> under the internal-research channel — gated by the three-condition
-> `is_internal_research_active` check: the `internal_research` build feature
-> **and** `NARSHA_INTERNAL_RESEARCH=1` **and** an authenticated internal-team
-> email (`@nextstage.kr` / `@nextstage.co.kr` / `@studionextstage.com`). External
-> installs never compile-in or collect a hostname.
+Each event also carries a timestamp. Names are shortened to a fixed maximum length before they are sent.
 
-### 1.2a Tier 2 — Diagnostic Error Reports (Per-Call Explicit Consent, Issue #11118)
+### 1.3 Optional Sign-In
 
-Tier 2 covers a single, narrowly-scoped channel: error reports submitted by
-the `/release-recovery` (`.claude/skills/release-recovery/SKILL.md`) skill
-when an end-user explicitly opts in via `--send-telemetry`. Tier 1 standing
-consent does **not** authorize Tier 2 submissions; each `--send-telemetry`
-invocation requires the user to type the flag themselves.
+NarshaMCP includes an optional command-line sign-in, `narshamcp auth login`, that uses your Google account. Google handles the sign-in under its own privacy policy. The resulting email address and tokens are stored only on your computer, in `%USERPROFILE%\.uecodegen\credentials.json` on Windows or `~/.config/uecodegen/credentials.json` on macOS and Linux. They are not sent to us, and no NarshaMCP feature requires you to sign in. Run `narshamcp auth logout` to sign out.
 
-**Tier 2 payload contents** (full schema: ERROR_REPORTS_SCHEMA.md (`docs/telemetry/ERROR_REPORTS_SCHEMA.md`)):
+### 1.4 Data That Stays on Your Computer
 
-| Field | Notes |
-|-------|-------|
-| `narshamcp_version`, `ue_version`, `platform.{os,arch}` | Same shape as Tier 1 |
-| `phase_a_severity` (`OK` / `WARN` / `CRITICAL`) | Diagnostic verdict only |
-| `scenarios[]`, `issues[]` | Diagnose-stage classifications (e.g. `stale_path`, `mcp_json_invalid`); these are short well-known codes, not free-form |
-| `log_tail[]` (≤ 200 entries, masked) | Trailing log lines from `~/.narshamcp/logs/mcp_server.log` AFTER passing the client masker (`.claude/skills/release-recovery/scripts/masking.py`) |
-| `mcp_json_redacted` (single masked string) | The user's `.mcp.json` contents with project + engine + user-home paths replaced by `<PROJECT>` / `<ENGINE>` / `<USER_HOME>` labels |
-| `env_vars` (allow-listed keys) | Only env vars matching `^(UECODEGEN_|NARSHAMCP_|RUST_LOG)`. Values whose key ends with `_TOKEN`, `_KEY`, `_SECRET`, `_PASSWORD`, `_PASSWD` are pre-redacted to `<REDACTED>` before transmission |
-| `anon_install_id` (sha256 of install UUID) | Pseudonymous; lets us detect "same user reported twice" without identifying who |
-| `consent_version` | ISO date of this policy at time of consent. A policy bump invalidates standing local-staging files until the user re-consents. |
+- **Consent record and install ID**: see Section 4.2.
+- **Sign-in details**: see Section 1.3.
+- **Tool call log**: So that the Unreal Editor can show tool results, NarshaMCP records each tool call, with its arguments and results (large results shortened), in `{project}/Saved/NarshaMCP/tool-call-log.jsonl`. Older copies are kept beside it up to a size limit. The log is not sent anywhere. Set `NARSHAMCP_TOOL_CALL_LOG_DISABLED=1` to turn it off; this does not affect the log files below.
+- **Log files**: NarshaMCP writes diagnostic logs, including the names and arguments of tool calls, to `~/.narshamcp/logs/`. A new file is started each day, and old files stay until you delete them. They are not sent anywhere.
+- **Diagnostic reports**: The recovery tool can prepare a diagnostic report with masked logs and settings. NarshaMCP saves it in `~/.narshamcp/error_reports/` on your computer and does not send it anywhere. You can delete these files at any time, and whether to share one with us, for example by attaching it to a support email, is up to you.
 
-**Tier 2 enforcement layers** (defense-in-depth — any single layer's
-failure must not produce a leak):
+### 1.5 Update Check
 
-1. **Client masker** — `release-recovery/scripts/masking.py` runs over every
-   file before it lands in the support-bundle ZIP and again before payload
-   submission.
-2. **Mutex with `--no-mask`** — `bundle.py` hard-fails if `--send-telemetry`
-   and `--no-mask` are passed together.
-3. **Server re-validation** — `ue_telemetry::send_error_report` re-runs the
-   static PII pattern set against the inbound payload and rejects any
-   match. The Rust pattern list is kept in lockstep with the Python one
-   (test parity: `test_masking.py` + `tests::test_pii_detect_covers_all_categories`).
-4. **Per-install rate limit** — 1 submission / hour. Prevents accidental
-   loops + bulk leakage.
-5. **Size cap** — 1 MiB per document. Larger payloads are rejected before
-   any disk write or network call.
-
-**Withdrawal**: Tier 2 has no standing state to revoke — there's nothing
-between submissions. To delete a previously-submitted document, file a
-ticket with the `report_id` returned from the submission; the document
-will be deleted within 30 days. Aggregate counters (severity histograms,
-scenario frequencies) cannot be retroactively redacted because they are
-already irreversibly anonymized.
-
-**Tier 2 retention**: 90 days from `created_at`, then automatic deletion
-via Firestore TTL policy. Local staging at `~/.narshamcp/error_reports/`
-is **not** auto-cleaned — users may delete those files manually.
-
-### 1.3 Authentication Data (Always Collected)
-
-If you choose to login:
-
-| Data Type | Legal Basis | Purpose |
-|-----------|-------------|---------|
-| **Email address** | Contract (GDPR Art. 6(1)(b)) | Account identification |
-| **User ID** | Contract (GDPR Art. 6(1)(b)) | Authentication |
-
-**Important**: Login is optional. Authentication and telemetry are separate systems.
+When NarshaMCP starts, it asks GitHub's public API whether a newer release is available, normally at most once a day. This check does not depend on your telemetry choice. The request goes to GitHub, not to us. It carries the NarshaMCP version in its User-Agent header, and GitHub receives your IP address as with any web request (see the [GitHub General Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement)). Set `NARSHAMCP_AUTO_UPDATE_DISABLED=1` before starting NarshaMCP to turn the automatic check off. Checking for or downloading an update on request, for example with the self-update tool, also contacts GitHub. An update is downloaded only when you ask for it.
 
 ---
 
 ## 2. Legal Basis for Processing
 
-Under GDPR Article 6, we process personal data based on:
+Under GDPR Article 6, we process the usage data in Section 1.2 based on:
 
 ### 2.1 Consent (Article 6(1)(a))
 
-- **What**: Anonymous telemetry data
+- **What**: Pseudonymous usage data (Section 1.2)
 - **When**: Only if you explicitly consent
-- **Withdrawal**: Anytime via settings CLI
+- **Withdrawal**: At any time, as described in Section 3.2
 
-### 2.2 Contract (Article 6(1)(b))
-
-- **What**: Authentication data (email, user ID)
-- **When**: Only if you choose to login
-- **Purpose**: Provide authenticated features
-
-**No Bundling**: Telemetry consent is NOT required for login (GDPR Art. 7(4) compliant).
+**No Bundling**: Telemetry consent is not required to use any NarshaMCP feature (GDPR Art. 7(4)).
 
 ---
 
@@ -170,176 +86,82 @@ Under GDPR Article 6, we process personal data based on:
 
 ### 3.1 First-Run Consent
 
-On first use, you'll see:
+When NarshaMCP starts in a terminal for the first time, you'll see:
 
 ```text
-======================================================================
-📊 NarshaMCP Telemetry
-======================================================================
+📊 Usage Telemetry
 
-Help improve NarshaMCP by sending pseudonymous usage data?
+NarshaMCP collects pseudonymous usage data to improve the
+tool. No source code, file paths, or personal info is
+ever collected.
 
-✅ What we collect:
-  - Tool usage (which tools, frequency)
-  - Performance metrics (execution time)
-  - Error categories
+Collected: tool call counts, operation names,
+  parameter names, execution time, routing server
+  (NarshaMCP vs Epic), session duration,
+  error categories, MCP version, engine version, OS type
 
-❌ What we DON'T collect:
-  - Your code or search queries
-  - Project names or file paths
-  - Personal information
+Disable on next start: NARSHA_TELEMETRY_DISABLED=1
+Privacy policy: public link printed below.
 
-Send pseudonymous usage data? [y/N]:
+Allow pseudonymous telemetry? [y/N]:
 ```
 
-- Type **Y** or **yes**: Enable pseudonymous telemetry
-- Press **Enter**, type **n/no**, or provide any other answer: Decline telemetry (no data sent)
+The prompt also prints the address of this policy.
 
-**MCP STDIO mode** (Fab/plugin installations): Interactive prompts are not available. Telemetry is **disabled by default**. To opt in, use `ue_auth(operation="telemetry_enable")`. The `ue_check_health` tool displays a one-time notice about telemetry availability.
+- Type **y** or **yes**: Enable pseudonymous telemetry
+- Press **Enter**, type **n/no**, or give any other answer: Decline (no data is sent)
 
-### 3.2 Change Your Settings Anytime
+The NarshaMCP dashboard asks the same question until you make a choice.
 
-```python
-# Check current status (shows sync status if logged in)
-ue_auth(operation="telemetry_status")
+**MCP STDIO mode** (Fab/plugin installations): No prompt can be shown, so telemetry stays **off**. You can opt in later from the dashboard's Settings tab. While you have not made a choice, the `ue_check_health` tool shows a `telemetry_notice`.
 
-# Enable telemetry
-ue_auth(operation="telemetry_enable")
+### 3.2 Change Your Settings
 
-# Disable telemetry
-ue_auth(operation="telemetry_disable")
-```
-
-**Sync Status**: If logged in, status command shows:
-- Current telemetry level
-- Last updated timestamp
-- Sync source (local or firestore)
-- User email (if synced)
-- Login tip (if not logged in)
-
-### 3.3 Environment Variable Override
-
-Force disable telemetry (highest priority):
+- **Dashboard**: Open the Settings tab and use the **Privacy & Telemetry** switch. The change takes effect immediately.
+- **Kill switch**: Set `NARSHA_TELEMETRY_DISABLED=1` (`true`, `yes`, and `on` also work) before starting NarshaMCP, and restart any process that is already running. The kill switch overrides your consent. The older name `UECODEGEN_TELEMETRY_DISABLED` works the same way. Removing the kill switch does not grant consent.
+- **Withdraw by deleting the consent record**: Delete `.telemetry_consent` and restart NarshaMCP. It is in `{project}/Intermediate/NarshaMCP/` when NarshaMCP knows your Unreal project, and in `~/.narshamcp/` otherwise. `NARSHAMCP_DATA_DIR` overrides both locations.
+- **Check your current choice**: The dashboard's Settings tab shows it. `ue_check_health` shows `telemetry_notice` only while no choice has been made.
 
 ```bash
-# New (recommended)
-export NARSHA_TELEMETRY_DISABLED=1
+# Windows (PowerShell)
+$env:NARSHA_TELEMETRY_DISABLED = "1"
 
-# Old (deprecated, but still works)
-export UECODEGEN_TELEMETRY_DISABLED=1
+# macOS / Linux
+export NARSHA_TELEMETRY_DISABLED=1
 ```
 
 ---
 
 ## 4. Data Storage and Retention
 
-### 4.1 Telemetry Data
+### 4.1 Usage Data
 
-- **Storage**: Google Firebase Analytics + BigQuery
-- **Retention**: 1 year (auto-deleted after 12 months)
+- **Storage**: Google Analytics (Firebase)
+- **Retention**: Kept only as long as needed to improve NarshaMCP. Google Analytics deletes it automatically according to our data retention setting.
 - **Location**: Google Cloud (US)
 - **Encryption**: TLS 1.3 in transit, AES-256 at rest
+- **Access**: Only authorized company staff can view the collected data. Statistics we derive from it contain only counts and percentages.
 
-#### 4.1.1 Aggregated Weekly Snapshots (Issue #10418)
+### 4.2 Records on Your Computer
 
-For internal dashboard use only, the
-`weekly-telemetry-publish` (`.github/workflows/weekly-telemetry-publish.yml`)
-GitHub Actions workflow runs every Sunday 04:00 KST and writes 5 aggregated
-JSON artifacts to Firebase Storage at `gs://uecodegen.firebasestorage.app/data/telemetry/`:
-
-- `unified/{YYYY-WNN}.json` — weekly snapshot of skill usage / quality metrics
-- `skill_rankings.json` — ranked skill effectiveness scores
-- `routing_accuracy_results.json` — per-skill routing precision/recall
-- `proxy_satisfaction_results.json` — behavior-derived satisfaction proxy
-- `improvement_findings.json` — auto-detected problem patterns
-
-These artifacts contain **only aggregated counts and percentages** — no
-session content, no tool arguments, no user identifiers. Read access is gated
-by Firebase authentication and a domain whitelist (`VITE_AUTH_ALLOWED_DOMAINS`,
-fail-closed) — see `tools/firebase-dashboard/README.md`
-and Issue #10419.
-Source-collection coverage and the current write-path gaps (e.g.,
-`tool_executions` is not yet populated by the Rust uploader) are documented in
-`docs/telemetry/COLLECTION_WRITE_PATHS.md`.
-
-#### 4.1.2 Internal SPA Dashboard (Issue #10428)
-
-The internal SPA dashboard at `https://uecodegen.web.app` (source:
-`tools/firebase-dashboard/`) **visualizes
-the same telemetry data already documented in §4.1.1** — no new data is
-collected or exposed beyond what is described in §3 (Data Collection) and
-§4.1 (Telemetry Data). The dashboard:
-
-- Restricts access to authenticated users from the configured domain
-  whitelist (`VITE_AUTH_ALLOWED_DOMAINS`); external users are unaffected.
-- Reads only from existing data sources: Firebase Storage artifacts (§4.1.1),
-  GA4 Reporting API (via `ga4Proxy` Cloud Function with same domain check),
-  and Firestore collections gated by `firestore.rules` (`tools/firebase-dashboard/firestore.rules`)
-  (which mirror the same allow-list).
-- Has 6 tabs: Overview, Tools, Leaderboard, Quality, Realtime, Conversations
-  (the originally-planned 7th `/daemon` tab was dropped in
-  PR #10846 —
-  `dashboard_server` is a local PC tool unrelated to telemetry).
-- See `docs/user-guides/FIREBASE_DASHBOARD_GUIDE.md`
-  for per-tab data sources and the new-member onboarding procedure.
-
-### 4.2 Consent Records
-
-**Local Storage** (Always):
-
-Consent is stored **per Unreal project** when NarshaMCP knows which project
-it is serving. This matches the existing per-project license token location
-and follows Unreal's convention of keeping generated state under `Intermediate/`.
+**Consent record**: Consent is stored **per Unreal project** when NarshaMCP knows which project it is serving, following Unreal's convention of keeping generated state under `Intermediate/`.
 
 - **Primary location (project-scoped)**: `{project}/Intermediate/NarshaMCP/.telemetry_consent`
-  - Deleting the project's `Intermediate/` directory resets NarshaMCP state for
-    that project (including consent)
-  - Each project tracks its own consent — enabling you to opt into telemetry
-    on some projects while opting out on others
+  - Deleting the project's `Intermediate/` directory resets NarshaMCP state for that project, including consent
+  - Each project keeps its own choice, so you can opt in for some projects and not others
 - **Fallback (no project)**: `~/.narshamcp/.telemetry_consent`
-  - Used by `narshamcp setup`, CLI helpers, and any path that does not know
-    the active Unreal project
-- **Contents**: Your choice ("anonymous" or "disabled") + timestamp + schema version
+- **Contents**: Your choice ("anonymous" or "disabled"), a timestamp, and format information
 - **Retention**: Until you delete it
 - **Who has access**: Only you (stored on your machine)
 - **Override**: Set `NARSHAMCP_DATA_DIR` to relocate the NarshaMCP data directory (advanced)
 
-After you explicitly enable anonymous telemetry, NarshaMCP maintains a separate
-`.telemetry_client_id` file in the same resolved data directory. When no
-sidecar exists, it does not create the client-ID or lock file before consent or
-while `NARSHA_TELEMETRY_DISABLED` / `UECODEGEN_TELEMETRY_DISABLED` is active. A
-valid file left by an earlier opt-in may be read without being rewritten:
+**Install ID**: After you explicitly enable telemetry, NarshaMCP keeps a separate `.telemetry_client_id` file in the same data directory. It does not create this file (or its lock file) before you consent, or while `NARSHA_TELEMETRY_DISABLED` / `UECODEGEN_TELEMETRY_DISABLED` is active. A valid file left by an earlier opt-in may be read without being rewritten.
 
-- **Contents**: One randomly generated UUIDv4 used as GA4's `client_id`
+- **Contents**: One randomly generated UUIDv4 used as the Google Analytics client ID
 - **Isolation**: Two project/install data directories on the same machine receive different values
 - **No fingerprinting**: The value is not derived from hostname, hardware, OS, architecture, account, or project contents
-- **Fresh-state creation and transmission**: A missing sidecar is first created, and its ID is sent, only when Tier 1 telemetry is enabled. An existing invalid sidecar may be repaired locally.
+- **Creation and sending**: A missing file is created, and its ID is sent, only when telemetry is enabled. An existing invalid file may be repaired locally.
 - **Retention/deletion**: It remains until you delete `.telemetry_client_id` or its containing `Intermediate/NarshaMCP` / `~/.narshamcp` data directory. NarshaMCP generates a new random value on the next start.
-
-> **Migration note (Issue #8796)**: Earlier versions stored the consent file at
-> `%APPDATA%\narshamcp\` (Windows) or `~/.narshamcp/` (Unix). On first launch the
-> current release **copies** that legacy file into the project-scoped location,
-> **never moving it**, so any additional Unreal projects you open keep inheriting
-> the original global preference until you explicitly change consent for each.
-
-**Cloud Sync** (Optional - If Logged In):
-- **Storage**: Google Firestore (collection: `users/{user_id}/consents/{consent_id}`)
-- **Purpose**: Sync consent settings across multiple devices
-- **Contents**: Telemetry level, timestamp, device ID (anonymized), client version
-- **Retention**: 1 year (auto-deleted after 12 months)
-- **Who has access**: Only you (tied to your Firebase account)
-
-**Important**:
-- Cloud sync is **optional** - you can use NarshaMCP without login and keep settings local only
-- Login is NOT required for telemetry - these are separate systems
-- Multi-device sync only activates if you choose to login
-
-### 4.3 Authentication Data
-
-- **Storage**: Firebase Authentication
-- **Retention**: Until account deletion
-- **Location**: Google Cloud (US)
-- **Encryption**: TLS 1.3 in transit, AES-256 at rest
 
 ---
 
@@ -349,13 +171,15 @@ Under GDPR Articles 15-22, you have the right to:
 
 | Right | How to Exercise |
 |-------|----------------|
-| **Access** | Request copy of your data: business@narshaadk.ai |
-| **Rectification** | Update your email via Firebase console |
-| **Erasure** | Delete account: `ue_auth(operation="logout")` + delete `~/.narshamcp/` |
-| **Restriction** | Disable telemetry: `ue_auth(operation="telemetry_disable")` |
-| **Data portability** | Request export: business@narshaadk.ai |
-| **Object** | Withdraw consent anytime (see Section 3.2) |
+| **Access** | Contact business@narshaadk.ai (see the note below) |
+| **Rectification** | Contact business@narshaadk.ai (see the note below) |
+| **Erasure** | Delete the local records (Section 4.2) and sign out with `narshamcp auth logout`. Usage data already sent carries only a random install ID, so we cannot link it to you; it is deleted automatically (Section 4.1). |
+| **Restriction** | Turn telemetry off (Section 3.2) |
+| **Data portability** | Contact business@narshaadk.ai (see the note below) |
+| **Object** | Withdraw consent at any time (Section 3.2) |
 | **Automated decisions** | Not applicable (no automated profiling) |
+
+**Note**: Usage data carries only a random install ID, so we cannot link it to you (GDPR Art. 11). NarshaMCP collects no other data about you.
 
 **Response Time**: Within 30 days
 
@@ -368,11 +192,11 @@ Under the California Consumer Privacy Act (CCPA, Cal. Civ. Code 1798.100-199.100
 | Right | Description | How to Exercise |
 |-------|-------------|-----------------|
 | **Right to Know** | Request what data we collect | business@narshaadk.ai |
-| **Right to Delete** | Request deletion of your data | `ue_auth(operation="telemetry_disable")` + business@narshaadk.ai |
+| **Right to Delete** | Request deletion of your data | Delete the local records (Section 4.2). Usage data already sent cannot be linked to you and is deleted automatically (Section 4.1). |
 | **Right to Opt-Out of Sale** | We **never sell** your personal information | N/A — no sale occurs |
 | **Right to Non-Discrimination** | Equal service regardless of privacy choices | All features work without telemetry |
 
-**Notice at Collection**: Categories of information collected are described in Section 1.1. With consent, we collect minimized pseudonymous usage statistics solely for product improvement.
+**Notice at Collection**: The categories of information collected are described in Section 1.2. With consent, we collect minimized pseudonymous usage statistics solely for product improvement.
 
 **Do Not Sell**: NarshaMCP does **not** sell, share, or disclose personal information to third parties for monetary or other valuable consideration.
 
@@ -382,12 +206,10 @@ Under the California Consumer Privacy Act (CCPA, Cal. Civ. Code 1798.100-199.100
 
 ### 6.1 Third-Party Services
 
-We use:
-
 | Service | Purpose | Data Shared | Privacy Policy |
 |---------|---------|-------------|----------------|
-| **Google Firebase** | Analytics, Auth | Pseudonymous usage with random install UUID; email only if logged in | [Firebase Privacy](https://firebase.google.com/support/privacy) |
-| **Google BigQuery** | Analytics storage | Pseudonymous usage and aggregated statistics | [BigQuery Privacy](https://cloud.google.com/bigquery/docs/data-governance) |
+| **Google Analytics (Firebase)** | Usage analytics | Pseudonymous usage data with a random install ID, only with your consent | [Firebase Privacy](https://firebase.google.com/support/privacy) |
+| **GitHub** | Update check (Section 1.5) | NarshaMCP version; GitHub also receives your IP address as part of the request | [GitHub Privacy](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement) |
 
 ### 6.2 No Data Selling
 
@@ -424,13 +246,15 @@ We may update this policy to reflect:
 - Consent re-prompt (if material changes)
 
 **History**:
-- Version 2.6 (2026-08-13): Replaced the machine-derived GA4 client fingerprint with a random locally stored per-install UUIDv4, changed first-run bare Enter to decline so only typed `y`/`yes` consents, and published a buyer-readable public policy endpoint (Issue #25802)
-- Version 2.5 (2026-06-19): Added the Tier 1 pseudonymous `daemon_crashed` event — daemon-death telemetry (crash reason `external_kill`/`panic`, OS exit code, AV probable-cause / Defender threat-name labels; no paths, backtrace, or tool history) so soak gates are remotely observable. Within the existing telemetry consent (no re-consent prompt). The internal-research variant additionally carries `host` + `anon_install_id`, gated on `is_internal_research_active` (Issue #15825)
-- Version 2.4 (2026-05-09): Added Tier 2 (per-call explicit opt-in) for `/release-recovery --send-telemetry` diagnostic error reports. New § 1.2a defines the payload, the 5-layer enforcement (client masker, mutex with `--no-mask`, server re-validation, rate limit, size cap), and 90-day retention. Tier 1 status row updated to reflect dual-tier active state (Issue #11118)
-- Version 2.3 (2026-05-09): Added § 4.1.2 clarifying internal SPA dashboard visualization scope — domain-whitelist auth, no new data collection beyond § 4.1.1, 6-tab structure post-#10846 (Issue #10428, completes Epic #10417 Phase 4)
-- Version 2.2 (2026-05-02): Added § 4.1.1 documenting weekly aggregated telemetry artifacts published to Firebase Storage (Issue #10418, parent Epic #10417)
-- Version 2.1 (2026-04-14): Removed machine ID collection from license verification (Issue #8793 — GDPR simplification), added Data Controller address, EU Representative conditional statement
-- Version 2.0 (2026-03-15): Added CCPA compliance, data tier definitions, Fab distribution section, MCP STDIO consent UX (Issue #6716)
+- Version 2.8 (2026-09-29): Rewrote the policy to describe only what the distributed NarshaMCP build does. Listed every usage event, including the startup cache flags and the flaky-test check. Removed descriptions of things that send nothing to us (diagnostic report upload, account-based settings sync, skill usage counts). Added the update check and the optional command-line sign-in. Updated the ways to change your telemetry choice. Removed BigQuery, which is not used, and described retention by the criteria we apply instead of a fixed period.
+- Version 2.7 (2026-08-14): Corrected the instructions for turning telemetry off
+- Version 2.6 (2026-08-13): Replaced the machine-derived analytics identifier with a random locally stored per-install UUIDv4, made a bare Enter at the first-run prompt decline so only a typed `y`/`yes` consents, and published this policy at a public address
+- Version 2.5 (2026-06-19): Added the daemon crash event
+- Version 2.4 (2026-05-09): Described diagnostic error reports
+- Version 2.3 (2026-05-09): Clarified who can view aggregated usage data
+- Version 2.2 (2026-05-02): Described weekly aggregated usage statistics
+- Version 2.1 (2026-04-14): Removed machine ID collection from license verification, added the Data Controller address and the EU Representative statement
+- Version 2.0 (2026-03-15): Added CCPA compliance, data tier definitions, the Fab distribution section, and the consent flow for MCP STDIO mode
 - Version 1.0 (2026-01-10): Initial GDPR-compliant policy
 
 ---
@@ -439,7 +263,7 @@ We may update this policy to reflect:
 
 **Privacy Questions**: business@narshaadk.ai
 **Security Issues**: business@narshaadk.ai
-**General Support**: the internal tracker
+**General Support**: narsha-support@narshaadk.ai
 
 **Data Controller**:
 Next Stage Inc.
@@ -469,16 +293,16 @@ Article 27 Representative.
 Our consent mechanism meets GDPR Art. 7 requirements:
 
 - ✅ **Freely given**: No impact on functionality if you decline
-- ✅ **Specific**: Separate consent for telemetry vs authentication
+- ✅ **Specific**: Telemetry consent is asked for on its own
 - ✅ **Informed**: Clear explanation of what we collect
 - ✅ **Unambiguous**: Only typed `y`/`yes` enables telemetry; Enter declines
 - ✅ **Withdrawable**: Easy opt-out anytime
 
 ### 11.3 Security Measures
 
-- **Circuit breaker**: Auto-disable after 3 failures (prevent data leaks)
+- **Circuit breaker**: After 3 consecutive network failures, NarshaMCP stops sending usage data until it restarts
 - **Never crashes**: Telemetry errors don't affect main functionality
-- **MCP protocol safe**: No stdout pollution (see CRITICAL_RULES.md (`docs/reference/CRITICAL_RULES.md`))
+- **MCP protocol safe**: Telemetry never writes to the MCP protocol stream
 - **Local consent**: Consent stored on your machine (not transmitted)
 
 ---
@@ -487,14 +311,14 @@ Our consent mechanism meets GDPR Art. 7 requirements:
 
 | Requirement | Status | Implementation |
 |-------------|--------|----------------|
-| **Art. 5(1)(a) - Lawfulness** | ✅ | Consent (telemetry) + Contract (auth) |
+| **Art. 5(1)(a) - Lawfulness** | ✅ | Consent (usage data) |
 | **Art. 5(1)(b) - Purpose limitation** | ✅ | Data used only for stated purposes |
 | **Art. 5(1)(c) - Data minimization** | ✅ | Pseudonymous aggregate data only, no code/paths or machine fingerprint |
 | **Art. 5(1)(d) - Accuracy** | ✅ | Self-reported consent, user controls |
-| **Art. 5(1)(e) - Storage limitation** | ✅ | 1-year retention, auto-deleted |
+| **Art. 5(1)(e) - Storage limitation** | ✅ | Kept only as long as needed, auto-deleted |
 | **Art. 5(1)(f) - Integrity** | ✅ | TLS 1.3, AES-256, circuit breaker |
 | **Art. 6(1)(a) - Consent** | ✅ | Freely given, specific, informed |
-| **Art. 7(4) - No bundling** | ✅ | Telemetry separate from login |
+| **Art. 7(4) - No bundling** | ✅ | No feature requires telemetry |
 | **Art. 13 - Transparency** | ✅ | This privacy policy |
 | **Art. 15-22 - User rights** | ✅ | Access, erasure, portability |
 | **Art. 25 - Privacy by design** | ✅ | Default disabled, local storage |
@@ -505,11 +329,11 @@ Our consent mechanism meets GDPR Art. 7 requirements:
 
 NarshaMCP is distributed via Epic Games' Fab marketplace. The following applies to Fab users:
 
-- **Default disabled**: Telemetry is off by default. No data is collected until you explicitly opt in.
-- **No interactive prompts**: MCP runs in STDIO mode — consent is managed via `ue_auth(telemetry_enable/disable)`.
-- **Health check notice**: The `ue_check_health` tool includes a `telemetry_notice` field while consent is `NotConfigured`. Once you enable or disable telemetry, the notice no longer appears.
-- **Fab compliance**: Data collection practices comply with Epic Games' marketplace guidelines. Only pseudonymous usage statistics are collected with explicit consent.
-- **Uninstall**: Removing the NarshaMCP plugin stops all data collection. Local `.telemetry_consent` and `.telemetry_client_id` files can be deleted manually from the resolved NarshaMCP data directory.
+- **Default disabled**: Telemetry is off by default. No usage data is sent until you explicitly opt in.
+- **No terminal prompt**: MCP runs in STDIO mode, where no prompt can be shown. Opt in or out from the dashboard's Settings tab, or use the kill switch or the consent record (Section 3.2).
+- **Health check notice**: The `ue_check_health` tool includes a `telemetry_notice` field while you have not made a choice. Once you enable or disable telemetry, the notice no longer appears.
+- **Fab compliance**: Data collection practices comply with Epic Games' marketplace guidelines. Only pseudonymous usage statistics are collected, and only with explicit consent.
+- **Uninstall**: Removing the NarshaMCP plugin stops all data collection. Local `.telemetry_consent` and `.telemetry_client_id` files can be deleted manually from the NarshaMCP data directory.
 
 ---
 
@@ -531,35 +355,29 @@ NarshaMCP follows best practices from:
 **Q: Will NarshaMCP work if I disable telemetry?**
 A: Yes! All features work identically whether telemetry is enabled or disabled.
 
-**Q: Can I login without enabling telemetry?**
-A: Yes! Authentication and telemetry are completely separate systems.
+**Q: Do I need to sign in?**
+A: No. The optional command-line sign-in is not required by any feature, and your sign-in details stay on your computer.
 
 **Q: What happens to my data if I disable telemetry?**
-A: No new data is sent. Existing data remains in Firebase until auto-deleted after 1 year.
+A: No new data is sent. Data already sent stays in Google Analytics until it is deleted automatically (Section 4.1).
 
-**Q: How do I delete my account entirely?**
-A: Logout (`ue_auth(operation="logout")`) and delete `~/.narshamcp/` folder.
+**Q: How do I remove the data NarshaMCP keeps on my computer?**
+A: Sign out with `narshamcp auth logout`, then delete `~/.narshamcp/` and, in each project, the `Intermediate/NarshaMCP/` and `Saved/NarshaMCP/` folders.
 
 **Q: Is my code sent to your servers?**
 A: No. We never collect your code, search queries, file paths, or project names.
 
+**Q: Does NarshaMCP connect to the internet without my consent?**
+A: Only to ask GitHub, normally at most once a day, whether a newer version exists (Section 1.5). You can turn that automatic check off.
+
 **Q: Why do you need telemetry?**
 A: Pseudonymous aggregate usage data helps us prioritize features and fix bugs that affect the most users.
 
-**Q: Can I trust Google Firebase with my data?**
-A: Firebase is used by millions of developers worldwide. We send only the minimized pseudonymous data described in Sections 1 and 4 when you consent.
-
-**Q: Do my consent settings sync across devices?**
-A: Yes, if you login! When logged in, your consent settings sync via Firebase Firestore across all your devices. If not logged in, settings are stored locally only.
-
-**Q: What data is synced when I login?**
-A: Only your consent choice ("anonymous" or "disabled"), timestamp, anonymized device ID, and client version. No code or personal data.
-
-**Q: Can I use multi-device sync without enabling telemetry?**
-A: Yes! You can login (for sync) and disable telemetry. Authentication and telemetry are separate systems.
+**Q: Can I trust Google with my data?**
+A: Google Analytics is used by millions of developers worldwide. We send only the minimized pseudonymous data described in Section 1.2, and only when you consent.
 
 ---
 
-**Last Updated**: 2026-08-13
-**Version**: 2.6
+**Last Updated**: 2026-09-29
+**Version**: 2.8
 **Contact**: business@narshaadk.ai
